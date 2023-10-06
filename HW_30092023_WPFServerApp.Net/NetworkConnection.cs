@@ -12,7 +12,7 @@ namespace HW_30092023_WPFServerApp.Net
         clientLogs clientlog;
         private bool isWork = false;
         List<clientLogs> clientsLogs = new List<clientLogs>();
-
+        private int maxQuotationsPerClient = 5;
         private int activeConnectionsCount = 0;
         public class clientLogs
         {
@@ -106,14 +106,26 @@ namespace HW_30092023_WPFServerApp.Net
                         var request = Encoding.UTF8.GetString(response.ToArray());
                         if (request.Trim() == "GET")
                         {
-                            Random random = new Random();
-                            int randomIndex = random.Next(quotations.Count);
-                            message = quotations[randomIndex] + "\n";
-                            clientlog.Quotation.Add(message);
-                            byte[] data = Encoding.UTF8.GetBytes(message);
-                            await stream.WriteAsync(data);
+                            if(clientlog.Quotation.Count < maxQuotationsPerClient)
+                            {
+                                Random random = new Random();
+                                int randomIndex = random.Next(quotations.Count);
+                                message = quotations[randomIndex] + "\n";
+                                clientlog.Quotation.Add(message);
+                                byte[] data = Encoding.UTF8.GetBytes(message);
+                                await stream.WriteAsync(data);
+                            }
+                            else
+                            {
+                                string limitMessage = "The maximum number of quotes for a client has been reached!!";
+                                byte[] limitData = Encoding.UTF8.GetBytes(limitMessage);
+                                await stream.WriteAsync(limitData);
+                                break;
+                            }
+                            
                         }
                         response.Clear();
+                        
                     }
                 }
 
