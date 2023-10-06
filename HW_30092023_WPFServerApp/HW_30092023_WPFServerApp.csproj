@@ -7,4 +7,8 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\HW_30092023_WPFServerApp.Net\HW_30092023_WPFServerApp.Net.csproj" />
+  </ItemGroup>
+
 </Project>
