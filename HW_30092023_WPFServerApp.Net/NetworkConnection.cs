@@ -18,7 +18,7 @@ namespace HW_30092023_WPFServerApp.Net
         {
             public string? WhoConnected { get; set; }
             public DateTime WhenConnected { get; set; }
-            public string? Quotation { get; set; }
+            public List<string> Quotation { get; set; }
             public DateTime WhenDisconnected { get; set; }
         }
 
@@ -97,7 +97,7 @@ namespace HW_30092023_WPFServerApp.Net
                 clientlog = new clientLogs(); // Создаем новый объект для каждого клиента
                 clientlog.WhenConnected = DateTime.Now;
                 clientlog.WhoConnected = $"{tcpClient.Client.RemoteEndPoint}";
-
+                clientlog.Quotation = new List<string>();
                 while ((bytesRead = stream.ReadByte()) != -1)
                 {
                     response.Add((byte)bytesRead);
@@ -109,7 +109,7 @@ namespace HW_30092023_WPFServerApp.Net
                             Random random = new Random();
                             int randomIndex = random.Next(quotations.Count);
                             message = quotations[randomIndex] + "\n";
-
+                            clientlog.Quotation.Add(message);
                             byte[] data = Encoding.UTF8.GetBytes(message);
                             await stream.WriteAsync(data);
                         }
@@ -118,7 +118,6 @@ namespace HW_30092023_WPFServerApp.Net
                 }
 
                 clientlog.WhenDisconnected = DateTime.Now;
-                clientlog.Quotation = message;
                 clientsLogs.Add(clientlog);
                 activeConnectionsCount--;
                 tcpClient.Close();

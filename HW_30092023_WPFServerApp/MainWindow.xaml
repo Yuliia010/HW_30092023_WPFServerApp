@@ -40,10 +40,10 @@
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
 
-                    <GridViewColumn Header="Last quotation" Width="300">
+                    <GridViewColumn Header="Quotations" Width="300">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding Quotation}" />
+                                <ListBox ItemsSource="{Binding Quotation}" />
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
