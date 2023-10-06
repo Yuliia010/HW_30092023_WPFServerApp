@@ -94,7 +94,7 @@ namespace HW_30092023_WPFServerApp.Net
 
             while (true)
             {
-                clientlog = new clientLogs(); // Создаем новый объект для каждого клиента
+                clientlog = new clientLogs(); 
                 clientlog.WhenConnected = DateTime.Now;
                 clientlog.WhoConnected = $"{tcpClient.Client.RemoteEndPoint}";
                 clientlog.Quotation = new List<string>();
