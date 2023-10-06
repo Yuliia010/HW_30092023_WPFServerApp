@@ -78,5 +78,10 @@ namespace HW_30092023_WPFServerApp
                 MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            connect.isStart();
+        }
     }
 }

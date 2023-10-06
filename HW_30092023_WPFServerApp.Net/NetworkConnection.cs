@@ -2,6 +2,7 @@
 using System.Net;
 using System.Text;
 using System.Transactions;
+using System.IO;
 
 namespace HW_30092023_WPFServerApp.Net
 {
@@ -9,9 +10,17 @@ namespace HW_30092023_WPFServerApp.Net
     {
         private TcpListener tcpListener;
         private TcpClient tcpClient;
-        clientLogs clientlog;
+        private clientLogs clientlog;
         private bool isWork = false;
-        List<clientLogs> clientsLogs = new List<clientLogs>();
+        private List<clientLogs> clientsLogs = new List<clientLogs>();
+
+        private string _login = "admin";
+        private string _password = "admin";
+
+        private string login = "";
+        private string password = "";
+
+        private bool successLogin = false;
 
         private int activeConnectionsCount = 0;
         public class clientLogs
@@ -40,15 +49,46 @@ namespace HW_30092023_WPFServerApp.Net
         {
             return isWork;
         }
-
+       
         public int GetActiveConnectionsCount()
         {
             return activeConnectionsCount;
         }
+        public async Task GetLogin()
+        {
+            var stream = tcpClient.GetStream();
+            var responseData = new byte[8192];
 
+            var response = new StringBuilder();
+            int bytes;
+            do
+            {
+                bytes = await stream.ReadAsync(responseData);
+                response.Append(Encoding.UTF8.GetString(responseData, 0, bytes));
+            }
+            while (stream.DataAvailable);
+
+            login = response.ToString();
+
+        }
+        public async Task GetPass()
+        {
+            var stream = tcpClient.GetStream();
+            var responseData = new byte[8192];
+            var response = new StringBuilder();
+            int bytes;
+            do
+            {
+                bytes = await stream.ReadAsync(responseData);
+                response.Append(Encoding.UTF8.GetString(responseData, 0, bytes));
+            }
+            while (stream.DataAvailable);
+
+            password = response.ToString();
+        }
         public async Task StartServer()
         {
-            if(!isWork)
+            if (!isWork)
             {
                 tcpListener = new TcpListener(IPAddress.Any, 8080);
 
@@ -59,9 +99,44 @@ namespace HW_30092023_WPFServerApp.Net
                     while (true)
                     {
                         tcpClient = await tcpListener.AcceptTcpClientAsync();
-                        activeConnectionsCount++;
-                        Task.Run(async () => await ProcessClientAsync());
 
+                        await GetLogin();
+                        if (_login == login)
+                        {
+                            string overloadMessage = "Ok";
+                            byte[] overloadData = Encoding.UTF8.GetBytes(overloadMessage);
+                            await tcpClient.GetStream().WriteAsync(overloadData);
+                        }
+                        else
+                        {
+                            string overloadMessage = "Reject";
+                            byte[] overloadData = Encoding.UTF8.GetBytes(overloadMessage);
+                            await tcpClient.GetStream().WriteAsync(overloadData);
+                            tcpClient.Close();
+                            continue; 
+                        }
+
+                        await GetPass();
+
+                        if (_password == password)
+                        {
+                            string overloadMessage = "Ok";
+                            byte[] overloadData = Encoding.UTF8.GetBytes(overloadMessage);
+                            await tcpClient.GetStream().WriteAsync(overloadData);
+
+                            if (tcpClient.Connected)
+                            {
+                                activeConnectionsCount++;
+                                Task.Run(async () => await ProcessClientAsync());
+                            }
+                        }
+                        else
+                        {
+                            string overloadMessage = "Reject";
+                            byte[] overloadData = Encoding.UTF8.GetBytes(overloadMessage);
+                            await tcpClient.GetStream().WriteAsync(overloadData);
+                            tcpClient.Close();
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -72,11 +147,8 @@ namespace HW_30092023_WPFServerApp.Net
             else
             {
                 tcpListener.Stop();
-                isWork= false;
+                isWork = false;
             }
-           
-                
-            
         }
 
         public List<clientLogs> GetLogs()
