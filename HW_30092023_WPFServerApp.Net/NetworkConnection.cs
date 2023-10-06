@@ -2,6 +2,7 @@
 using System.Net;
 using System.Text;
 using System.Transactions;
+using System.IO;
 
 namespace HW_30092023_WPFServerApp.Net
 {
@@ -10,9 +11,10 @@ namespace HW_30092023_WPFServerApp.Net
         private TcpListener tcpListener;
         private TcpClient tcpClient;
         clientLogs clientlog;
+
         private bool isWork = false;
         List<clientLogs> clientsLogs = new List<clientLogs>();
-
+        private int maxConnections = 3;
         private int activeConnectionsCount = 0;
         public class clientLogs
         {
@@ -59,9 +61,22 @@ namespace HW_30092023_WPFServerApp.Net
                     while (true)
                     {
                         tcpClient = await tcpListener.AcceptTcpClientAsync();
-                        activeConnectionsCount++;
-                        Task.Run(async () => await ProcessClientAsync());
+                        if (activeConnectionsCount < maxConnections)
+                        {
+                            activeConnectionsCount++;
+                            string overloadMessage = "Ok";
+                            byte[] overloadData = Encoding.UTF8.GetBytes(overloadMessage);
+                            await tcpClient.GetStream().WriteAsync(overloadData);
 
+                            Task.Run(async () => await ProcessClientAsync());
+                        }
+                        else
+                        {
+                            string overloadMessage = "Overloaded";
+                            byte[] overloadData = Encoding.UTF8.GetBytes(overloadMessage);
+                            await tcpClient.GetStream().WriteAsync(overloadData);
+                            tcpClient.Close();
+                        }
                     }
                 }
                 catch (Exception ex)
